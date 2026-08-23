@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { HackathonMode, PlatformType } from "@/types/hackathon";
+import { HackathonMode, PlatformType, NormalizedHackathon, HubStats } from "@/types/hackathon";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -356,5 +356,54 @@ export function cleanDescription(rawDesc?: string): { short: string; full: strin
   return {
     short,
     full: cleaned,
+  };
+}
+
+export function calculateHubStats(hackathons: NormalizedHackathon[]): HubStats {
+  const platformCounts: Record<PlatformType, number> = {
+    devfolio: 0,
+    dorahacks: 0,
+    mlh: 0,
+    unstop: 0,
+    wemakedevs: 0,
+  };
+
+  let onlineCount = 0;
+  let inPersonCount = 0;
+  let upcomingCount = 0;
+  let ongoingCount = 0;
+  let completedCount = 0;
+  const tagFrequency: Record<string, number> = {};
+
+  hackathons.forEach((h) => {
+    if (platformCounts[h.platform] !== undefined) {
+      platformCounts[h.platform] = (platformCounts[h.platform] || 0) + 1;
+    }
+    if (h.mode === "Online") onlineCount++;
+    else if (h.mode === "In-Person" || h.mode === "Hybrid") inPersonCount++;
+
+    if (h.status === "ongoing") ongoingCount++;
+    else if (h.status === "upcoming") upcomingCount++;
+    else if (h.status === "completed") completedCount++;
+
+    h.tags.forEach((tag) => {
+      tagFrequency[tag] = (tagFrequency[tag] || 0) + 1;
+    });
+  });
+
+  const popularTags = Object.entries(tagFrequency)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
+  return {
+    total: hackathons.length,
+    onlineCount,
+    inPersonCount,
+    upcomingCount,
+    ongoingCount,
+    completedCount,
+    platformCounts,
+    popularTags,
   };
 }

@@ -21,6 +21,7 @@ import {
   UserBookmark,
   HackathonStatus,
 } from "@/types/hackathon";
+import { getHackathonStatus, calculateHubStats } from "@/lib/utils";
 import {
   ArrowUp,
   Sparkles,
@@ -52,16 +53,35 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
   const [bookmarks, setBookmarks] = useState<UserBookmark[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
-  const initialStatus: HackathonStatus = useMemo(() => {
-    const hasOngoing = initialHackathons.some((h) => h.status === "ongoing");
-    return hasOngoing ? "ongoing" : "upcoming";
+  // Normalize statuses dynamically based on the user's live client clock
+  const hackathons = useMemo(() => {
+    return initialHackathons.map((h) => {
+      const liveStatus = getHackathonStatus(h.startDate, h.endDate).status;
+      return {
+        ...h,
+        status: liveStatus,
+      };
+    });
   }, [initialHackathons]);
+
+  const stats = useMemo(() => {
+    return calculateHubStats(hackathons);
+  }, [hackathons]);
+
+  const defaultStatus: HackathonStatus = useMemo(() => {
+    const hasOngoing = hackathons.some((h) => h.status === "ongoing");
+    return hasOngoing ? "ongoing" : "upcoming";
+  }, [hackathons]);
 
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
     platform: "all",
     mode: "all",
-    status: initialHackathons.some((h) => h.status === "ongoing") ? "ongoing" : "upcoming",
+    status: initialHackathons.some(
+      (h) => getHackathonStatus(h.startDate, h.endDate).status === "ongoing"
+    )
+      ? "ongoing"
+      : "upcoming",
     tag: "all",
     sortBy: "date-asc",
   });
@@ -174,11 +194,11 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
       return true;
     };
 
-    let result = initialHackathons.filter((h) => matchesFilters(h, filters.status));
+    let result = hackathons.filter((h) => matchesFilters(h, filters.status));
 
     // If filtering by "ongoing" yielded 0 results, fall back to "upcoming"
     if (filters.status === "ongoing" && result.length === 0) {
-      result = initialHackathons.filter((h) => matchesFilters(h, "upcoming"));
+      result = hackathons.filter((h) => matchesFilters(h, "upcoming"));
     }
 
     return result.sort((a, b) => {
@@ -200,7 +220,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
 
       return 0;
     });
-  }, [initialHackathons, filters]);
+  }, [hackathons, filters]);
 
   const visibleHackathons = useMemo(() => {
     return filteredHackathons.slice(0, visibleCount);
@@ -211,7 +231,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
       {/* Top Navigation */}
       <Navbar
         bookmarkCount={bookmarks.length}
-        totalHackathons={initialStats.total}
+        totalHackathons={stats.total}
         onOpenBookmarks={() => setIsBookmarksOpen(true)}
         onOpenAnalytics={() => {
           setActiveTab("analytics");
@@ -233,8 +253,8 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
             transition={{ duration: 0.25 }}
           >
             <AnalyticsView
-              stats={initialStats}
-              allHackathons={initialHackathons}
+              stats={stats}
+              allHackathons={hackathons}
               onFilterByPlatform={(p) => {
                 setFilters((prev) => ({ ...prev, platform: p }));
                 setActiveTab("explore");
@@ -256,7 +276,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
           >
             {/* Hero Section */}
             <HeroSection
-              stats={initialStats}
+              stats={stats}
               filters={filters}
               setFilters={setFilters}
               onOpenFinder={() => setIsFinderOpen(true)}
@@ -266,7 +286,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
             <FilterBar
               filters={filters}
               setFilters={setFilters}
-              availableTags={initialStats.popularTags}
+              availableTags={stats.popularTags}
               viewMode={viewMode}
               setViewMode={setViewMode}
               totalFiltered={filteredHackathons.length}
@@ -289,7 +309,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
                         search: "",
                         platform: "all",
                         mode: "all",
-                        status: "all",
+                        status: defaultStatus,
                         tag: "all",
                         sortBy: "date-asc",
                       })
@@ -420,7 +440,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
                     }}
                     className="py-3.5 px-6 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 font-semibold text-sm text-center border border-neutral-700 transition-colors"
                   >
-                    Browse all {initialStats.total} events
+                    Browse all {stats.total} events
                   </motion.button>
                 </div>
               </div>
@@ -444,7 +464,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
         isOpen={isBookmarksOpen}
         onClose={() => setIsBookmarksOpen(false)}
         bookmarks={bookmarks}
-        allHackathons={initialHackathons}
+        allHackathons={hackathons}
         onRemoveBookmark={handleToggleBookmark}
         onUpdateStage={handleUpdateStage}
         onUpdateNotes={handleUpdateNotes}
@@ -454,7 +474,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
       <HackathonFinderModal
         isOpen={isFinderOpen}
         onClose={() => setIsFinderOpen(false)}
-        allHackathons={initialHackathons}
+        allHackathons={hackathons}
         bookmarkedIds={bookmarkedIds}
         onToggleBookmark={handleToggleBookmark}
         onSelectHackathon={(h) => setSelectedHackathon(h)}
@@ -484,8 +504,8 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
         <div className="max-w-[1240px] mx-auto px-4 sm:px-8 space-y-12">
           {/* Top Row: Brand & Buttons */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-b border-neutral-800 pb-8">
-            <div className="flex items-center">
-              <div className="relative w-14 h-14 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center">
+            <div className="flex items-center gap-4">
+              <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center">
                 <Image
                   src="/onlyhub_logo.png"
                   alt="onlyhub logo"
@@ -495,7 +515,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
                 />
               </div>
               <div>
-                <div className="flex items-baseline font-brand select-none -ml-4">
+                <div className="flex items-baseline font-brand select-none">
                   <span className="text-3xl sm:text-4xl font-black tracking-[-0.04em] text-white">
                     only
                   </span>
@@ -535,14 +555,14 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
           {/* Fine Print */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
             <div>
-              © 2026 onlyhub. Developed by <a href="https://github.com/TuhinBanerjee31">Tuhin Banerjee</a> with some brain, Antigravity and <a href="https://brightdata.com">Bright Data</a>.
+              © 2026 onlyhub. All rights reserved. Data sourced from public hackathon feeds.
             </div>
 
-            {/* <div className="flex items-center gap-6">
+            <div className="flex items-center gap-6">
               <span>Privacy</span>
               <span>Terms</span>
               <span>API</span>
-            </div> */}
+            </div>
           </div>
         </div>
       </footer>
