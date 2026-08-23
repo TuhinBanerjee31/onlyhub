@@ -2,6 +2,7 @@ import { getAllHackathonsAsync, getHubStats } from "@/lib/dataLoader";
 import { HackathonHubClient } from "@/components/HackathonHubClient";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   const hackathons = await getAllHackathonsAsync();
