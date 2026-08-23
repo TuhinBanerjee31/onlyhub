@@ -81,11 +81,11 @@ flowchart TD
     end
 
     subgraph BrightData [Bright Data DCA Infrastructure]
-        CollectorUnstop[Unstop Collector: c_mt5nm4f1bwbf79hrg]
-        CollectorDora[DoraHacks Collector: c_mt5yy2u52c6dh4ra3p]
-        CollectorDevfolio[Devfolio Collector: c_mt5xu60s2cvbgtd10z]
-        CollectorMLH[MLH Collector: c_mt5sss7b1zrfcv5qax]
-        CollectorWMD[WeMakeDevs Collector: c_mt62dad22g0jvfi8gl]
+        CollectorUnstop
+        CollectorDora
+        CollectorDevfolio
+        CollectorMLH
+        CollectorWMD
     end
 
     subgraph Backend [Next.js 14 API Backend]
@@ -147,13 +147,13 @@ flowchart TD
 
 **onlyhub** leverages Bright Data's **Data Collector API (DCA)** to bypass CAPTCHAs, bot protections, and geographic restrictions:
 
-| Platform | Collector ID | Target Endpoint |
-| :--- | :--- | :--- |
-| **Unstop** | `c_mt5nm4f1bwbf79hrg` | `https://unstop.com/hackathons?oppstatus=open&usertype=fresher&fresherPassingOutYear=2025` |
-| **DoraHacks** | `c_mt5yy2u52c6dh4ra3p` | `https://dorahacks.io/hackathon` |
-| **Devfolio** | `c_mt5xu60s2cvbgtd10z` | `https://devfolio.co/hackathons` |
-| **MLH** | `c_mt5sss7b1zrfcv5qax` | `https://www.mlh.com/seasons/2027/events` |
-| **WeMakeDevs** | `c_mt62dad22g0jvfi8gl` | `https://www.wemakedevs.org/hackathons` |
+| Platform | Target Endpoint |
+| :--- | :--- |
+| **Unstop** | `https://unstop.com/hackathons?oppstatus=open&usertype=fresher&fresherPassingOutYear=2025` |
+| **DoraHacks** | `https://dorahacks.io/hackathon` |
+| **Devfolio** | `https://devfolio.co/hackathons` |
+| **MLH** | `https://www.mlh.com/seasons/2027/events` |
+| **WeMakeDevs** | `https://www.wemakedevs.org/hackathons` |
 
 ---
 
