@@ -525,7 +525,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
                   <span className="w-2 h-2 rounded-full bg-emerald-500 ml-1 mb-1 inline-block animate-pulse" />
                 </div>
                 <p className="text-xs text-neutral-400 mt-1">
-                  The global terminal for builders, engineers, and creators.
+                  The global terminal for builders, engineers, and students.
                 </p>
               </div>
             </div>

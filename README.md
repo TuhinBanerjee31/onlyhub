@@ -1,7 +1,10 @@
 # onlyhub • Hackathon Radar 🌐🚀
 
-> **The global terminal for builders, engineers, and creators.**  
-> An automated, high-performance hackathon discovery and intelligence platform aggregating live developer competitions, Web3 buildathons, and collegiate hackathons across 5 major ecosystems.
+> **The global terminal for builders, engineers, and students.**  
+> An platform aggregating live developer competitions, Web3 buildathons, and collegiate hackathons across 5 major ecosystems. Basically, an essential for every developer or enthusiast in tech who loves hackathons..
+
+![onlyhub-1.avif](https://user22426.na.imgto.link/public/20260823/onlyhub-1.avif)
+![onlyhub-2.avif](https://user22426.na.imgto.link/public/20260823/onlyhub-2.avif)
 
 Built with ❤️ for the **[Into the Scrape-Verse Hackathon](https://www.wemakedevs.org/hackathons/scrape-verse)** by **WeMakeDevs**.
 
@@ -275,11 +278,17 @@ curl -X POST http://localhost:3000/api/sync/manual \
 
 ---
 
+## 🌟 My Take on developing with Antigravity and Bright Data Scraper
+
+I didn't knew much about scraping and also showed up for the hackathon on the last day. AI was giving me very either very complex ideas or very basic ones. Back of my mind i listed some of my own useful things i could solve with scraping one of those was a platfrom which contains all the hackathons information and eventually helps me to manage it utimately saves my time of surfing through different websites and creating lots distractions/confusion (I hope you get my point). And that's it i developed "onlyhub." managing code via antigravity and the scraping via Bright data's scraper studio. The scapers studio really solve the hustle of data scraping by alot like you like it the url and provide it with schema and data information to collect it actually does it for you pretty quick, then you just need to hit the api. Although Scrapers Studio haluciantes sometimes but their self healing is the main magic like if you scraper breaks trigger self healer with some details fixes it pretty well. Overall a great developer experience otherwise i won't be able to build it with a day.
+
+---
+
 ## 🏆 Hackathon Submission Details
 
 - **Hackathon**: [Into the Scrape-Verse Hackathon](https://www.wemakedevs.org/hackathons/scrape-verse)
 - **Organized By**: [WeMakeDevs](https://www.wemakedevs.org) & [Bright Data](https://brightdata.com)
-- **Project Name**: **onlyhub**
+- **Project Name**: **onlyhub.**
 - **Theme**: Automated Web Scraping & Developer Tooling
 
 ---
