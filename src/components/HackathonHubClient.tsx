@@ -535,14 +535,14 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
           {/* Fine Print */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
             <div>
-              © 2026 onlyhub. All rights reserved. Data sourced from public hackathon feeds.
+              © 2026 onlyhub. Developed by <a href="https://github.com/TuhinBanerjee31">Tuhin Banerjee</a> with some brain, Antigravity and <a href="https://brightdata.com">Bright Data</a>.
             </div>
 
-            <div className="flex items-center gap-6">
+            {/* <div className="flex items-center gap-6">
               <span>Privacy</span>
               <span>Terms</span>
               <span>API</span>
-            </div>
+            </div> */}
           </div>
         </div>
       </footer>
