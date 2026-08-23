@@ -504,8 +504,8 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
         <div className="max-w-[1240px] mx-auto px-4 sm:px-8 space-y-12">
           {/* Top Row: Brand & Buttons */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-b border-neutral-800 pb-8">
-            <div className="flex items-center gap-4">
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center">
+            <div className="flex items-center">
+              <div className="relative w-18 h-18 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center">
                 <Image
                   src="/onlyhub_logo.png"
                   alt="onlyhub logo"
@@ -555,14 +555,10 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
           {/* Fine Print */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
             <div>
-              © 2026 onlyhub. All rights reserved. Data sourced from public hackathon feeds.
+                © 2026 onlyhub. Developed by <a href="https://github.com/TuhinBanerjee31">Tuhin Banerjee</a> with some brain, Antigravity and <a href="https://brightdata.com">Bright Data</a>.
             </div>
 
-            <div className="flex items-center gap-6">
-              <span>Privacy</span>
-              <span>Terms</span>
-              <span>API</span>
-            </div>
+           
           </div>
         </div>
       </footer>
