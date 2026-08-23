@@ -8,6 +8,7 @@ import {
   List as ListIcon,
   Calendar,
   RotateCcw,
+  ChevronDown,
 } from "lucide-react";
 import { FilterOptions, HackathonMode, HackathonStatus } from "@/types/hackathon";
 
@@ -54,7 +55,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       search: "",
       platform: "all",
       mode: "all",
-      status: "all",
+      status: "ongoing",
       tag: "all",
       sortBy: "date-asc",
     });
@@ -75,7 +76,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             onChange={(e) =>
               setFilters((prev) => ({ ...prev, search: e.target.value }))
             }
-            className="w-full pl-11 pr-10 py-3 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-sm text-black dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all"
+            className="w-full pl-11 pr-10 py-3 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-sm text-black dark:text-white placeholder-neutral-400 dark:placeholder-neutral-500 focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white transition-all shadow-sm"
           />
           {filters.search && (
             <button
@@ -88,59 +89,65 @@ export const FilterBar: React.FC<FilterBarProps> = ({
         </div>
 
         {/* Right Controls: Status filter + Mode filter + View switcher */}
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap justify-between lg:justify-end">
+        <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap justify-between lg:justify-end">
           {/* Status selector (Ongoing / Upcoming / Completed) */}
-          <select
-            value={filters.status}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                status: e.target.value as HackathonStatus | "all",
-              }))
-            }
-            className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-black dark:text-white focus:outline-none cursor-pointer"
-          >
-            <option value="all" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              All Statuses
-            </option>
-            <option value="ongoing" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              🟢 Ongoing
-            </option>
-            <option value="upcoming" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              🗓️ Upcoming
-            </option>
-            <option value="completed" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              🏁 Completed
-            </option>
-          </select>
+          <div className="relative inline-flex items-center">
+            <select
+              value={filters.status}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  status: e.target.value as HackathonStatus | "all",
+                }))
+              }
+              className="appearance-none pl-4 pr-9 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white cursor-pointer shadow-sm"
+            >
+              <option value="all" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                All Statuses
+              </option>
+              <option value="ongoing" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                🟢 Ongoing
+              </option>
+              <option value="upcoming" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                🗓️ Upcoming
+              </option>
+              <option value="completed" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                🏁 Completed
+              </option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-neutral-500 absolute right-3 pointer-events-none" />
+          </div>
 
           {/* Format selector */}
-          <select
-            value={filters.mode}
-            onChange={(e) =>
-              setFilters((prev) => ({
-                ...prev,
-                mode: e.target.value as HackathonMode | "all",
-              }))
-            }
-            className="px-4 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-black dark:text-white focus:outline-none cursor-pointer"
-          >
-            <option value="all" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              All Formats
-            </option>
-            <option value="Online" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              Virtual / Remote
-            </option>
-            <option value="In-Person" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              In-Person
-            </option>
-            <option value="Hybrid" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
-              Hybrid
-            </option>
-          </select>
+          <div className="relative inline-flex items-center">
+            <select
+              value={filters.mode}
+              onChange={(e) =>
+                setFilters((prev) => ({
+                  ...prev,
+                  mode: e.target.value as HackathonMode | "all",
+                }))
+              }
+              className="appearance-none pl-4 pr-9 py-2.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-xs font-semibold text-black dark:text-white focus:outline-none focus:ring-2 focus:ring-black dark:focus:ring-white cursor-pointer shadow-sm"
+            >
+              <option value="all" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                All Formats
+              </option>
+              <option value="Online" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                Virtual / Remote
+              </option>
+              <option value="In-Person" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                In-Person
+              </option>
+              <option value="Hybrid" className="bg-white dark:bg-neutral-900 text-black dark:text-white">
+                Hybrid
+              </option>
+            </select>
+            <ChevronDown className="w-3.5 h-3.5 text-neutral-500 absolute right-3 pointer-events-none" />
+          </div>
 
           {/* View switcher pill */}
-          <div className="flex items-center p-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-full">
+          <div className="flex items-center p-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-full shadow-sm">
             <button
               onClick={() => setViewMode("grid")}
               className={`p-2 rounded-full transition-all ${

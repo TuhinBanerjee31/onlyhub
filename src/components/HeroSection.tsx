@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { motion } from "framer-motion";
 import {
   Search,
   Calendar,
@@ -71,19 +72,21 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 {platforms.map((p) => {
                   const isSelected = filters.platform === p.id;
                   return (
-                    <button
+                    <motion.button
+                      whileHover={{ scale: 1.04 }}
+                      whileTap={{ scale: 0.95 }}
                       key={p.id}
                       onClick={() =>
                         setFilters((prev) => ({ ...prev, platform: p.id }))
                       }
-                      className={`px-4 py-2 rounded-full text-xs font-medium transition-all ${
+                      className={`px-4 py-2 rounded-full text-xs font-medium transition-colors ${
                         isSelected
                           ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-sm"
                           : "bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800"
                       }`}
                     >
                       {p.label} <span className="opacity-60 ml-1">({p.count})</span>
-                    </button>
+                    </motion.button>
                   );
                 })}
               </div>
@@ -229,13 +232,15 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
                 </div>
 
                 {/* Primary CTA Black Pill */}
-                <button
+                <motion.button
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                   type="submit"
-                  className="w-full py-3.5 px-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:opacity-90 active:scale-98 transition-all flex items-center justify-center gap-2 mt-2"
+                  className="w-full py-3.5 px-6 rounded-full bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2 mt-2 shadow-sm"
                 >
                   <span>Search hackathons</span>
                   <ArrowRight className="w-4 h-4" />
-                </button>
+                </motion.button>
               </form>
 
               {/* Matchmaker Link */}

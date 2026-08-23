@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
+import { motion, AnimatePresence } from "framer-motion";
 import { Navbar } from "./Navbar";
 import { HeroSection } from "./HeroSection";
 import { FilterBar } from "./FilterBar";
@@ -18,10 +19,12 @@ import {
   HubStats,
   NormalizedHackathon,
   UserBookmark,
+  HackathonStatus,
 } from "@/types/hackathon";
 import {
   ArrowUp,
   Sparkles,
+  ChevronDown,
 } from "lucide-react";
 
 interface HackathonHubClientProps {
@@ -30,6 +33,7 @@ interface HackathonHubClientProps {
 }
 
 const STORAGE_KEY = "onlyhub_bookmarks_v1";
+const PAGE_SIZE = 24;
 
 export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
   initialHackathons,
@@ -43,35 +47,36 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
   const [isFinderOpen, setIsFinderOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
+  const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
   const [bookmarks, setBookmarks] = useState<UserBookmark[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+
+  const initialStatus: HackathonStatus = useMemo(() => {
+    const hasOngoing = initialHackathons.some((h) => h.status === "ongoing");
+    return hasOngoing ? "ongoing" : "upcoming";
+  }, [initialHackathons]);
 
   const [filters, setFilters] = useState<FilterOptions>({
     search: "",
     platform: "all",
     mode: "all",
-    status: "all",
+    status: initialHackathons.some((h) => h.status === "ongoing") ? "ongoing" : "upcoming",
     tag: "all",
     sortBy: "date-asc",
   });
 
   useEffect(() => {
     try {
-      const saved = localStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        setBookmarks(JSON.parse(saved));
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setBookmarks(JSON.parse(stored));
       }
     } catch (e) {
-      console.error("Failed to load bookmarks", e);
+      console.error("Failed to load bookmarks:", e);
+    } finally {
+      setIsLoaded(true);
     }
-    setIsLoaded(true);
-
-    const handleScroll = () => {
-      setShowBackToTop(window.scrollY > 400);
-    };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   useEffect(() => {
@@ -79,15 +84,31 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(bookmarks));
       } catch (e) {
-        console.error("Failed to save bookmarks", e);
+        console.error("Failed to save bookmarks:", e);
       }
     }
   }, [bookmarks, isLoaded]);
 
-  const bookmarkedIds = useMemo(
-    () => new Set(bookmarks.map((b) => b.hackathonId)),
-    [bookmarks]
-  );
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 400);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filters]);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const bookmarkedIds = useMemo(() => {
+    return new Set(bookmarks.map((b) => b.hackathonId));
+  }, [bookmarks]);
 
   const handleToggleBookmark = (id: string) => {
     setBookmarks((prev) => {
@@ -120,209 +141,293 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
   };
 
   const filteredHackathons = useMemo(() => {
-    return initialHackathons
-      .filter((h) => {
-        if (filters.platform !== "all" && h.platform !== filters.platform) {
+    const matchesFilters = (h: NormalizedHackathon, statusToCheck: string) => {
+      if (filters.platform !== "all" && h.platform !== filters.platform) {
+        return false;
+      }
+
+      if (filters.mode !== "all" && h.mode !== filters.mode) {
+        return false;
+      }
+
+      if (statusToCheck !== "all" && h.status !== statusToCheck) {
+        return false;
+      }
+
+      if (filters.tag !== "all" && !h.tags.includes(filters.tag)) {
+        return false;
+      }
+
+      if (filters.search.trim() !== "") {
+        const query = filters.search.toLowerCase();
+        const matchesTitle = h.title.toLowerCase().includes(query);
+        const matchesDesc = h.description.toLowerCase().includes(query);
+        const matchesLocation = (h.location || "").toLowerCase().includes(query);
+        const matchesTags = h.tags.some((t) => t.toLowerCase().includes(query));
+        const matchesOrg = (h.organizer || "").toLowerCase().includes(query);
+
+        if (!matchesTitle && !matchesDesc && !matchesLocation && !matchesTags && !matchesOrg) {
           return false;
         }
+      }
 
-        if (filters.mode !== "all" && h.mode !== filters.mode) {
-          return false;
-        }
+      return true;
+    };
 
-        if (filters.status !== "all" && h.status !== filters.status) {
-          return false;
-        }
+    let result = initialHackathons.filter((h) => matchesFilters(h, filters.status));
 
-        if (filters.tag !== "all" && !h.tags.includes(filters.tag)) {
-          return false;
-        }
+    // If filtering by "ongoing" yielded 0 results, fall back to "upcoming"
+    if (filters.status === "ongoing" && result.length === 0) {
+      result = initialHackathons.filter((h) => matchesFilters(h, "upcoming"));
+    }
 
-        if (filters.search.trim() !== "") {
-          const query = filters.search.toLowerCase();
-          const matchesTitle = h.title.toLowerCase().includes(query);
-          const matchesDesc = h.description.toLowerCase().includes(query);
-          const matchesLocation = (h.location || "").toLowerCase().includes(query);
-          const matchesOrganizer = (h.organizer || "").toLowerCase().includes(query);
-          const matchesTags = h.tags.some((t) => t.toLowerCase().includes(query));
-          const matchesPlatform = h.platform.toLowerCase().includes(query);
+    return result.sort((a, b) => {
+      if (filters.sortBy === "title-asc") {
+        return a.title.localeCompare(b.title);
+      }
 
-          if (
-            !matchesTitle &&
-            !matchesDesc &&
-            !matchesLocation &&
-            !matchesOrganizer &&
-            !matchesTags &&
-            !matchesPlatform
-          ) {
-            return false;
-          }
-        }
+      if (filters.sortBy === "date-asc") {
+        if (!a.startDate) return 1;
+        if (!b.startDate) return -1;
+        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+      }
 
-        return true;
-      })
-      .sort((a, b) => {
-        if (filters.sortBy === "title-asc") {
-          return a.title.localeCompare(b.title);
-        } else if (filters.sortBy === "relevance") {
-          return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
-        } else if (filters.sortBy === "date-desc") {
-          return (b.startDate || "").localeCompare(a.startDate || "");
-        } else {
-          if (!a.startDate) return 1;
-          if (!b.startDate) return -1;
-          return a.startDate.localeCompare(b.startDate);
-        }
-      });
+      if (filters.sortBy === "date-desc") {
+        if (!a.startDate) return 1;
+        if (!b.startDate) return -1;
+        return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+      }
+
+      return 0;
+    });
   }, [initialHackathons, filters]);
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
+  const visibleHackathons = useMemo(() => {
+    return filteredHackathons.slice(0, visibleCount);
+  }, [filteredHackathons, visibleCount]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white transition-colors">
-      {/* Top Navbar */}
+    <div className="min-h-screen flex flex-col bg-white dark:bg-black text-black dark:text-white transition-colors duration-300">
+      {/* Top Navigation */}
       <Navbar
         bookmarkCount={bookmarks.length}
         totalHackathons={initialStats.total}
         onOpenBookmarks={() => setIsBookmarksOpen(true)}
-        onOpenAnalytics={() => setActiveTab("analytics")}
+        onOpenAnalytics={() => {
+          setActiveTab("analytics");
+          scrollToTop();
+        }}
         onOpenFinder={() => setIsFinderOpen(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
 
       {/* Main Tab View */}
-      {activeTab === "analytics" ? (
-        <AnalyticsView
-          stats={initialStats}
-          allHackathons={initialHackathons}
-          onFilterByPlatform={(p) => {
-            setFilters((prev) => ({ ...prev, platform: p }));
-            setActiveTab("explore");
-          }}
-          onFilterByTag={(tag) => {
-            setFilters((prev) => ({ ...prev, tag }));
-            setActiveTab("explore");
-          }}
-        />
-      ) : (
-        <main className="flex-1">
-          {/* Hero Section */}
-          <HeroSection
-            stats={initialStats}
-            filters={filters}
-            setFilters={setFilters}
-            onOpenFinder={() => setIsFinderOpen(true)}
-          />
+      <AnimatePresence mode="wait">
+        {activeTab === "analytics" ? (
+          <motion.div
+            key="analytics"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+          >
+            <AnalyticsView
+              stats={initialStats}
+              allHackathons={initialHackathons}
+              onFilterByPlatform={(p) => {
+                setFilters((prev) => ({ ...prev, platform: p }));
+                setActiveTab("explore");
+              }}
+              onFilterByTag={(tag) => {
+                setFilters((prev) => ({ ...prev, tag }));
+                setActiveTab("explore");
+              }}
+            />
+          </motion.div>
+        ) : (
+          <motion.main
+            key="explore"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }}
+            className="flex-1"
+          >
+            {/* Hero Section */}
+            <HeroSection
+              stats={initialStats}
+              filters={filters}
+              setFilters={setFilters}
+              onOpenFinder={() => setIsFinderOpen(true)}
+            />
 
-          {/* Filter Bar */}
-          <FilterBar
-            filters={filters}
-            setFilters={setFilters}
-            availableTags={initialStats.popularTags}
-            viewMode={viewMode}
-            setViewMode={setViewMode}
-            totalFiltered={filteredHackathons.length}
-          />
+            {/* Filter Bar */}
+            <FilterBar
+              filters={filters}
+              setFilters={setFilters}
+              availableTags={initialStats.popularTags}
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              totalFiltered={filteredHackathons.length}
+            />
 
-          {/* Results Grid / List / Timeline */}
-          <div className="max-w-[1240px] mx-auto px-4 sm:px-8 pb-16">
-            {filteredHackathons.length === 0 ? (
-              <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4 my-8 shadow-sm">
-                <h3 className="text-xl font-bold text-black dark:text-white">
-                  No hackathons found
-                </h3>
-                <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                  No events matched your current search parameters.
-                </p>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setFilters({
-                      search: "",
-                      platform: "all",
-                      mode: "all",
-                      status: "all",
-                      tag: "all",
-                      sortBy: "date-asc",
-                    })
-                  }
-                  className="px-6 py-2.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:opacity-90 transition-all shadow-sm"
-                >
-                  Reset all filters
-                </button>
-              </div>
-            ) : viewMode === "grid" ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredHackathons.map((hack) => (
-                  <HackathonCard
-                    key={hack.id}
-                    hackathon={hack}
-                    isBookmarked={bookmarkedIds.has(hack.id)}
+            {/* Results Grid / List / Timeline */}
+            <div className="max-w-[1240px] mx-auto px-4 sm:px-8 pb-16">
+              {filteredHackathons.length === 0 ? (
+                <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4 my-8 shadow-sm">
+                  <h3 className="text-xl font-bold text-black dark:text-white">
+                    No hackathons found
+                  </h3>
+                  <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                    No events matched your current search parameters.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilters({
+                        search: "",
+                        platform: "all",
+                        mode: "all",
+                        status: "all",
+                        tag: "all",
+                        sortBy: "date-asc",
+                      })
+                    }
+                    className="px-6 py-2.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:opacity-90 transition-all shadow-sm"
+                  >
+                    Reset all filters
+                  </button>
+                </div>
+              ) : viewMode === "grid" ? (
+                <div className="space-y-8">
+                  <motion.div
+                    layout
+                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                  >
+                    <AnimatePresence>
+                      {visibleHackathons.map((hack) => (
+                        <HackathonCard
+                          key={hack.id}
+                          hackathon={hack}
+                          isBookmarked={bookmarkedIds.has(hack.id)}
+                          onToggleBookmark={handleToggleBookmark}
+                          onSelect={(h) => setSelectedHackathon(h)}
+                        />
+                      ))}
+                    </AnimatePresence>
+                  </motion.div>
+
+                  {/* Load More Button */}
+                  {visibleCount < filteredHackathons.length && (
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        type="button"
+                        onClick={() =>
+                          setVisibleCount((prev) =>
+                            Math.min(prev + PAGE_SIZE, filteredHackathons.length)
+                          )
+                        }
+                        className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white font-bold text-xs hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm transition-colors"
+                      >
+                        <ChevronDown className="w-4 h-4" />
+                        <span>
+                          Load More ({visibleCount} of {filteredHackathons.length} shown)
+                        </span>
+                      </motion.button>
+
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        type="button"
+                        onClick={() => setVisibleCount(filteredHackathons.length)}
+                        className="px-6 py-3.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-bold text-xs hover:opacity-90 shadow-sm transition-opacity"
+                      >
+                        Show All {filteredHackathons.length} Events
+                      </motion.button>
+                    </div>
+                  )}
+                </div>
+              ) : viewMode === "list" ? (
+                <div className="space-y-8">
+                  <ListView
+                    hackathons={visibleHackathons}
+                    bookmarkedIds={bookmarkedIds}
                     onToggleBookmark={handleToggleBookmark}
                     onSelect={(h) => setSelectedHackathon(h)}
                   />
-                ))}
-              </div>
-            ) : viewMode === "list" ? (
-              <ListView
-                hackathons={filteredHackathons}
-                bookmarkedIds={bookmarkedIds}
-                onToggleBookmark={handleToggleBookmark}
-                onSelect={(h) => setSelectedHackathon(h)}
-              />
-            ) : (
-              <TimelineView
-                hackathons={filteredHackathons}
-                bookmarkedIds={bookmarkedIds}
-                onToggleBookmark={handleToggleBookmark}
-                onSelect={(h) => setSelectedHackathon(h)}
-              />
-            )}
-          </div>
 
-          {/* Polarity-Flipped Black Promo Band */}
-          <section className="bg-black text-white py-16 px-4 sm:px-8 my-8 border-y border-neutral-800">
-            <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-              <div className="lg:col-span-8 space-y-4">
-                <div className="text-xs font-bold uppercase tracking-widest text-neutral-400">
-                  WHY BUILD WITH ONLYHUB
+                  {visibleCount < filteredHackathons.length && (
+                    <div className="flex justify-center pt-4">
+                      <motion.button
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        type="button"
+                        onClick={() => setVisibleCount(filteredHackathons.length)}
+                        className="px-8 py-3.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-bold text-xs hover:opacity-90 shadow-sm transition-opacity"
+                      >
+                        Show All {filteredHackathons.length} Rows
+                      </motion.button>
+                    </div>
+                  )}
                 </div>
-                <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
-                  Build prototypes. Win grants. Get noticed.
-                </h2>
-                <p className="text-base text-neutral-400 max-w-2xl leading-relaxed">
-                  Join tens of thousands of developers discovering elite competitions,
-                  securing sponsor prize bounties, and turning weekend projects into venture-backed startups.
-                </p>
-              </div>
-
-              <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-end">
-                <button
-                  type="button"
-                  onClick={() => setIsFinderOpen(true)}
-                  className="flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-white text-black hover:bg-neutral-100 font-semibold text-sm transition-all shadow-sm"
-                >
-                  <Sparkles className="w-4 h-4" />
-                  <span>Launch Matchmaker</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setFilters((prev) => ({ ...prev, platform: "all", search: "" }));
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                  }}
-                  className="py-3.5 px-6 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 font-semibold text-sm text-center border border-neutral-700 transition-all"
-                >
-                  Browse all {initialStats.total} events
-                </button>
-              </div>
+              ) : (
+                <TimelineView
+                  hackathons={filteredHackathons}
+                  bookmarkedIds={bookmarkedIds}
+                  onToggleBookmark={handleToggleBookmark}
+                  onSelect={(h) => setSelectedHackathon(h)}
+                />
+              )}
             </div>
-          </section>
-        </main>
-      )}
+
+            {/* Polarity-Flipped Black Promo Band */}
+            <section className="bg-black text-white py-16 px-4 sm:px-8 my-8 border-t border-neutral-800">
+              <div className="max-w-[1240px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                <div className="lg:col-span-8 space-y-4">
+                  <div className="text-xs font-bold uppercase tracking-widest text-neutral-400">
+                    WHY BUILD WITH ONLYHUB
+                  </div>
+                  <h2 className="text-3xl sm:text-4xl font-bold tracking-tight text-white">
+                    Build prototypes. Win grants. Get noticed.
+                  </h2>
+                  <p className="text-base text-neutral-400 max-w-2xl leading-relaxed">
+                    Join tens of thousands of developers discovering elite competitions,
+                    securing sponsor prize bounties, and turning weekend projects into venture-backed startups.
+                  </p>
+                </div>
+
+                <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3 justify-end">
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="button"
+                    onClick={() => setIsFinderOpen(true)}
+                    className="flex items-center justify-center gap-2 py-3.5 px-6 rounded-full bg-white text-black hover:bg-neutral-100 font-semibold text-sm transition-colors shadow-sm"
+                  >
+                    <Sparkles className="w-4 h-4" />
+                    <span>Launch Matchmaker</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    type="button"
+                    onClick={() => {
+                      setFilters((prev) => ({ ...prev, platform: "all", search: "" }));
+                      scrollToTop();
+                    }}
+                    className="py-3.5 px-6 rounded-full bg-neutral-900 text-white hover:bg-neutral-800 font-semibold text-sm text-center border border-neutral-700 transition-colors"
+                  >
+                    Browse all {initialStats.total} events
+                  </motion.button>
+                </div>
+              </div>
+            </section>
+          </motion.main>
+        )}
+      </AnimatePresence>
 
       {/* Modals & Drawers */}
       <HackathonModal
@@ -356,24 +461,31 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
       />
 
       {/* Floating Back to Top Button */}
-      {showBackToTop && (
-        <button
-          type="button"
-          onClick={scrollToTop}
-          className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-black text-white dark:bg-white dark:text-black shadow-xl flex items-center justify-center hover:opacity-90 active:scale-95 transition-all"
-          title="Back to Top"
-        >
-          <ArrowUp className="w-5 h-5" />
-        </button>
-      )}
+      <AnimatePresence>
+        {showBackToTop && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            type="button"
+            onClick={scrollToTop}
+            className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full bg-black text-white dark:bg-white dark:text-black shadow-2xl flex items-center justify-center border border-neutral-200 dark:border-neutral-800"
+            title="Back to Top"
+          >
+            <ArrowUp className="w-5 h-5" />
+          </motion.button>
+        )}
+      </AnimatePresence>
 
       {/* Deep Black Footer */}
       <footer className="bg-black text-white pt-14 pb-10 border-t border-neutral-800">
         <div className="max-w-[1240px] mx-auto px-4 sm:px-8 space-y-12">
           {/* Top Row: Brand & Buttons */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-b border-neutral-800 pb-8">
-            <div className="flex items-center gap-4">
-              <div className="relative w-14 h-14 sm:w-16 sm:h-16 shrink-0 flex items-center justify-center">
+            <div className="flex items-center">
+              <div className="relative w-14 h-14 sm:w-32 sm:h-32 shrink-0 flex items-center justify-center">
                 <Image
                   src="/onlyhub_logo.png"
                   alt="onlyhub logo"
@@ -383,9 +495,15 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
                 />
               </div>
               <div>
-                <span className="text-3xl sm:text-4xl font-black tracking-tight text-white block">
-                  onlyhub
-                </span>
+                <div className="flex items-baseline font-brand select-none -ml-4">
+                  <span className="text-3xl sm:text-4xl font-black tracking-[-0.04em] text-white">
+                    only
+                  </span>
+                  <span className="text-3xl sm:text-4xl font-black tracking-[-0.04em] bg-gradient-to-r from-white via-neutral-200 to-neutral-400 bg-clip-text text-transparent">
+                    hub
+                  </span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 ml-1 mb-1 inline-block animate-pulse" />
+                </div>
                 <p className="text-xs text-neutral-400 mt-1">
                   The global terminal for builders, engineers, and creators.
                 </p>
@@ -393,201 +511,29 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
             </div>
 
             <div className="flex items-center gap-3">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => setIsFinderOpen(true)}
                 className="px-4 py-2 rounded-full bg-white text-black hover:bg-neutral-100 text-xs font-semibold transition-colors"
               >
                 Matchmaker
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => setIsBookmarksOpen(true)}
                 className="px-4 py-2 rounded-full bg-neutral-900 border border-neutral-700 text-white hover:bg-neutral-800 text-xs font-semibold transition-colors"
               >
                 Shortlist ({bookmarks.length})
-              </button>
-            </div>
-          </div>
-
-          {/* Links Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-xs text-neutral-400">
-            <div className="space-y-3">
-              <div className="font-bold text-white uppercase tracking-wider text-[11px]">
-                Ecosystems
-              </div>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, platform: "devfolio" }));
-                      setActiveTab("explore");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    Devfolio Hackathons ({initialStats.platformCounts.devfolio || 29})
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, platform: "wemakedevs" }));
-                      setActiveTab("explore");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    WeMakeDevs ({initialStats.platformCounts.wemakedevs || 23})
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, platform: "dorahacks" }));
-                      setActiveTab("explore");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    DoraHacks Bounties ({initialStats.platformCounts.dorahacks || 17})
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, platform: "mlh" }));
-                      setActiveTab("explore");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    MLH Season ({initialStats.platformCounts.mlh || 73})
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, platform: "unstop" }));
-                      setActiveTab("explore");
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    Unstop Challenges ({initialStats.platformCounts.unstop || 18})
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-3">
-              <div className="font-bold text-white uppercase tracking-wider text-[11px]">
-                Technology Focus
-              </div>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, tag: "AI & ML" }));
-                      setActiveTab("explore");
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    AI & Machine Learning
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, tag: "Web3 & Crypto" }));
-                      setActiveTab("explore");
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    Web3 & Blockchain
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, tag: "Open Source" }));
-                      setActiveTab("explore");
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    Open Source
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilters((prev) => ({ ...prev, tag: "Fintech" }));
-                      setActiveTab("explore");
-                    }}
-                    className="hover:text-white transition-colors"
-                  >
-                    Fintech & Quantitative
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-3">
-              <div className="font-bold text-white uppercase tracking-wider text-[11px]">
-                Platform Features
-              </div>
-              <ul className="space-y-2">
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setIsFinderOpen(true)}
-                    className="hover:text-white transition-colors"
-                  >
-                    Hackathon Matchmaker
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setIsBookmarksOpen(true)}
-                    className="hover:text-white transition-colors"
-                  >
-                    Application Tracker & CSV
-                  </button>
-                </li>
-                <li>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab("analytics")}
-                    className="hover:text-white transition-colors"
-                  >
-                    Landscape Analytics
-                  </button>
-                </li>
-              </ul>
-            </div>
-
-            <div className="space-y-3">
-              <div className="font-bold text-white uppercase tracking-wider text-[11px]">
-                onlyhub
-              </div>
-              <p className="text-xs text-neutral-400 leading-relaxed">
-                Aggregating 160+ hackathons across 5 major ecosystems in a minimal, high-speed, black-and-white interface.
-              </p>
+              </motion.button>
             </div>
           </div>
 
           {/* Fine Print */}
-          <div className="pt-8 border-t border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
             <div>
               © 2026 onlyhub. All rights reserved. Data sourced from public hackathon feeds.
             </div>

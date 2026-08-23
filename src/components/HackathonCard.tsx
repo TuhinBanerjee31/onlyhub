@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
+import { motion } from "framer-motion";
 import {
   Calendar,
   MapPin,
@@ -40,9 +41,18 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
   };
 
   return (
-    <div
+    <motion.div
+      layout="position"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.95 }}
+      whileHover={{
+        y: -6,
+        transition: { type: "spring", stiffness: 400, damping: 25 },
+      }}
+      whileTap={{ scale: 0.985 }}
       onClick={() => onSelect(hackathon)}
-      className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-black dark:hover:border-neutral-500 rounded-2xl flex flex-col justify-between overflow-hidden cursor-pointer group shadow-sm hover:shadow-md transition-all"
+      className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-black dark:hover:border-neutral-400 rounded-2xl flex flex-col justify-between overflow-hidden cursor-pointer group shadow-sm hover:shadow-xl transition-colors duration-200 will-change-transform"
     >
       <div>
         {/* Image Container with Fallback & Ambient Background */}
@@ -51,13 +61,14 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
             src={imgSrc}
             alt={hackathon.title}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             unoptimized
             onError={handleImageError}
-            className="object-cover group-hover:scale-105 transition-transform duration-300"
+            className="object-cover group-hover:scale-108 transition-transform duration-500 ease-out"
           />
 
-          {/* Gradient Overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-transparent" />
+          {/* Ambient Gradient Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/25 to-transparent transition-opacity duration-300 group-hover:opacity-90" />
 
           {/* Top Floating Badges */}
           <div className="absolute top-3 left-3 right-3 flex items-center justify-between z-10">
@@ -71,18 +82,20 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
             </div>
 
             {/* Bookmark button */}
-            <button
+            <motion.button
+              whileTap={{ scale: 0.85 }}
+              whileHover={{ scale: 1.1 }}
               type="button"
               onClick={handleBookmarkClick}
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all ${
+              className={`w-9 h-9 rounded-full flex items-center justify-center transition-colors shadow-sm ${
                 isBookmarked
                   ? "bg-black text-white dark:bg-white dark:text-black shadow-md"
-                  : "bg-white/90 text-black hover:bg-white shadow-sm"
+                  : "bg-white/90 text-black hover:bg-white"
               }`}
               title={isBookmarked ? "Remove from Shortlist" : "Save to Shortlist"}
             >
-              <Bookmark className={`w-4 h-4 ${isBookmarked ? "fill-current" : ""}`} />
-            </button>
+              <Bookmark className={`w-4 h-4 transition-transform duration-200 ${isBookmarked ? "fill-current scale-110" : ""}`} />
+            </motion.button>
           </div>
 
           {/* Bottom Left Status Badge (Ongoing / Upcoming / Completed) */}
@@ -109,7 +122,7 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
           {/* Metadata Row */}
           <div className="flex items-center justify-between text-xs text-neutral-500 dark:text-neutral-400">
             <span className="flex items-center gap-1">
-              <Calendar className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5 shrink-0" />
               <span>{hackathon.displayDates}</span>
             </span>
             <span className="flex items-center gap-1 truncate max-w-[140px]">
@@ -119,7 +132,7 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
           </div>
 
           {/* Title */}
-          <h3 className="text-base sm:text-lg font-bold text-black dark:text-white group-hover:underline line-clamp-1 leading-snug">
+          <h3 className="text-base sm:text-lg font-bold text-black dark:text-white group-hover:text-neutral-700 dark:group-hover:text-neutral-200 line-clamp-1 leading-snug transition-colors">
             {hackathon.title}
           </h3>
 
@@ -133,7 +146,7 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
             {hackathon.tags.slice(0, 3).map((tag) => (
               <span
                 key={tag}
-                className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white border border-neutral-200 dark:border-neutral-700"
+                className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white border border-neutral-200 dark:border-neutral-700 transition-colors hover:bg-neutral-200 dark:hover:bg-neutral-700"
               >
                 {tag}
               </span>
@@ -154,12 +167,14 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
         )}
 
         <div className="flex items-center gap-2">
-          <a
+          <motion.a
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             href={hackathon.url}
             target="_blank"
             rel="noopener noreferrer"
             onClick={(e) => e.stopPropagation()}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-semibold text-xs transition-all shadow-sm ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full font-semibold text-xs transition-colors shadow-sm ${
               statusInfo.status === "completed"
                 ? "bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 hover:bg-neutral-300 dark:hover:bg-neutral-700"
                 : "bg-black text-white dark:bg-white dark:text-black hover:opacity-90"
@@ -167,9 +182,9 @@ export const HackathonCard: React.FC<HackathonCardProps> = ({
           >
             <span>{statusInfo.status === "completed" ? "View Archive" : "Register"}</span>
             <ExternalLink className="w-3 h-3" />
-          </a>
+          </motion.a>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
