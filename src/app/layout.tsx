@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Space_Grotesk } from "next/font/google";
+import { Analytics } from "@vercel/analytics/react";
 import "./globals.css";
 
 const inter = Inter({
@@ -48,6 +49,7 @@ export default function RootLayout({
       </head>
       <body className="min-h-screen bg-white dark:bg-black text-black dark:text-white antialiased font-sans selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
         {children}
+        <Analytics />
       </body>
     </html>
   );
