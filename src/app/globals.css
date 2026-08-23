@@ -1,0 +1,84 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: #ffffff;
+    --foreground: #000000;
+    --canvas-soft: #f3f3f3;
+    --canvas-softer: #f8f8f8;
+    --surface-pressed: #e2e2e2;
+    --body-text: #5e5e5e;
+    --mute-text: #8e8e8e;
+    --border: #e5e5e5;
+    --border-strong: #d4d4d4;
+    --card-bg: #ffffff;
+  }
+
+  .dark {
+    --background: #000000;
+    --foreground: #ffffff;
+    --canvas-soft: #161616;
+    --canvas-softer: #202020;
+    --surface-pressed: #2c2c2c;
+    --body-text: #a0a0a0;
+    --mute-text: #666666;
+    --border: #222222;
+    --border-strong: #333333;
+    --card-bg: #111111;
+  }
+
+  * {
+    border-color: var(--border);
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    letter-spacing: -0.01em;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+/* Custom Minimalist Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: #333333;
+}
+
+/* Multi-line Truncation utilities */
+.line-clamp-1 {
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
