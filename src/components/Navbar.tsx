@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Bookmark, Sun, Moon, Sparkles, Activity, Compass } from "lucide-react";
+import { Bookmark, Sun, Moon, Sparkles, Activity, Compass, Plus } from "lucide-react";
 
 interface NavbarProps {
   bookmarkCount: number;
@@ -11,6 +11,7 @@ interface NavbarProps {
   onOpenBookmarks: () => void;
   onOpenAnalytics: () => void;
   onOpenFinder: () => void;
+  onOpenRequestPlatform?: () => void;
   activeTab: "explore" | "analytics";
   setActiveTab: (tab: "explore" | "analytics") => void;
 }
@@ -21,6 +22,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenBookmarks,
   onOpenAnalytics,
   onOpenFinder,
+  onOpenRequestPlatform,
   activeTab,
   setActiveTab,
 }) => {
@@ -135,6 +137,20 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Right Actions */}
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Request Platform Button */}
+          {onOpenRequestPlatform && (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={onOpenRequestPlatform}
+              className="hidden md:flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white text-xs font-bold transition-all shadow-sm group"
+              title="Request a new platform"
+            >
+              <Plus className="w-3.5 h-3.5 text-emerald-500 group-hover:rotate-90 transition-transform duration-300" />
+              <span>Request Platform</span>
+            </motion.button>
+          )}
+
           {/* Matchmaker AI Button with Subtle Aura */}
           <motion.button
             whileHover={{ scale: 1.04 }}

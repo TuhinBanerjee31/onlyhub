@@ -3,10 +3,11 @@
 > **The global terminal for builders, engineers, and students.**  
 > An platform aggregating live developer competitions, Web3 buildathons, and collegiate hackathons across 5 major ecosystems. Basically, an essential for every developer or enthusiast in tech who loves hackathons..
 
-![onlyhub-1.avif](https://user22426.na.imgto.link/public/20260823/onlyhub-1.avif)
+![onlyhub-1.avif](https://user22426.na.imgto.link/public/20260824/onlyhub-1.avif)
 ![onlyhub-2.avif](https://user22426.na.imgto.link/public/20260823/onlyhub-2.avif)
 
 Built with ❤️ for the **[Into the Scrape-Verse Hackathon](https://www.wemakedevs.org/hackathons/scrape-verse)** by **WeMakeDevs**.
+
 
 ---
 

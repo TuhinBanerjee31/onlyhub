@@ -13,6 +13,7 @@ import { AnalyticsView } from "./AnalyticsView";
 import { HackathonModal } from "./HackathonModal";
 import { BookmarksDrawer } from "./BookmarksDrawer";
 import { HackathonFinderModal } from "./HackathonFinderModal";
+import { RequestPlatformModal } from "./RequestPlatformModal";
 import {
   ApplicationStage,
   FilterOptions,
@@ -47,6 +48,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
 
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
   const [isFinderOpen, setIsFinderOpen] = useState(false);
+  const [isRequestPlatformOpen, setIsRequestPlatformOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
@@ -238,6 +240,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
           scrollToTop();
         }}
         onOpenFinder={() => setIsFinderOpen(true)}
+        onOpenRequestPlatform={() => setIsRequestPlatformOpen(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
@@ -280,6 +283,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
               filters={filters}
               setFilters={setFilters}
               onOpenFinder={() => setIsFinderOpen(true)}
+              onOpenRequestPlatform={() => setIsRequestPlatformOpen(true)}
             />
 
             {/* Filter Bar */}
@@ -511,6 +515,11 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
         onSelectHackathon={(h) => setSelectedHackathon(h)}
       />
 
+      <RequestPlatformModal
+        isOpen={isRequestPlatformOpen}
+        onClose={() => setIsRequestPlatformOpen(false)}
+      />
+
       {/* Floating Back to Top Button */}
       <AnimatePresence>
         {showBackToTop && (
@@ -561,7 +570,16 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="button"
+                onClick={() => setIsRequestPlatformOpen(true)}
+                className="px-4 py-2 rounded-full bg-neutral-900 border border-neutral-700 text-white hover:bg-neutral-800 text-xs font-semibold transition-colors"
+              >
+                + Request Platform
+              </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
@@ -586,10 +604,8 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
           {/* Fine Print */}
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-neutral-500">
             <div>
-                © 2026 onlyhub. Developed by <a href="https://github.com/TuhinBanerjee31">Tuhin Banerjee</a> with some brain, Antigravity and <a href="https://brightdata.com">Bright Data</a>.
+              © 2026 onlyhub. Developed by <a href="https://github.com/TuhinBanerjee31" target="_blank" rel="noreferrer" className="transition-colors hover:text-white">Tuhin Banerjee</a> with some brain, Antigravity and <a href="https://brightdata.com" target="_blank" rel="noreferrer" className="transition-colors hover:text-white">Bright Data</a>.
             </div>
-
-           
           </div>
         </div>
       </footer>

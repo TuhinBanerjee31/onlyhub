@@ -15,6 +15,7 @@ interface HeroSectionProps {
   filters: FilterOptions;
   setFilters: React.Dispatch<React.SetStateAction<FilterOptions>>;
   onOpenFinder: () => void;
+  onOpenRequestPlatform?: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -22,6 +23,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   filters,
   setFilters,
   onOpenFinder,
+  onOpenRequestPlatform,
 }) => {
   const [localSearch, setLocalSearch] = useState(filters.search);
 
@@ -74,8 +76,20 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
             {/* Platform Filter Pills */}
             <div className="pt-2">
-              <div className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider mb-3">
-                Select Platform
+              <div className="flex items-center justify-between mb-3">
+                <div className="text-xs font-semibold text-neutral-500 dark:text-neutral-400 uppercase tracking-wider">
+                  Select Platform
+                </div>
+                {onOpenRequestPlatform && (
+                  <button
+                    type="button"
+                    onClick={onOpenRequestPlatform}
+                    className="group text-xs text-neutral-500 hover:text-black dark:text-neutral-400 dark:hover:text-white font-medium flex items-center gap-1 transition-colors"
+                  >
+                    <span>Request platform</span>
+                    <span className="text-emerald-500 font-bold transition-transform duration-200 ease-out group-hover:scale-150">+</span>
+                  </button>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 {platforms.map((p) => {
