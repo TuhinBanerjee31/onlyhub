@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import {
   Bookmark,
   ExternalLink,
@@ -40,19 +41,22 @@ export const ListView: React.FC<ListViewProps> = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-            {hackathons.map((hack) => {
+            {hackathons.map((hack, index) => {
               const isBookmarked = bookmarkedIds.has(hack.id);
               const statusInfo = getHackathonStatus(hack.startDate, hack.endDate);
 
               return (
-                <tr
+                <motion.tr
                   key={hack.id}
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.2, delay: Math.min(index * 0.02, 0.3) }}
                   onClick={() => onSelect(hack)}
-                  className="hover:bg-neutral-50 dark:hover:bg-neutral-800/60 cursor-pointer transition-colors"
+                  className="hover:bg-neutral-50 dark:hover:bg-neutral-800/60 cursor-pointer transition-colors group"
                 >
                   {/* Hackathon title & chips */}
                   <td className="py-4 px-6 align-middle">
-                    <div className="font-bold text-sm sm:text-base text-black dark:text-white line-clamp-2 hover:underline leading-snug">
+                    <div className="font-bold text-sm sm:text-base text-black dark:text-white line-clamp-2 group-hover:underline leading-snug">
                       {hack.title}
                     </div>
                     <div className="flex flex-wrap gap-1 mt-1.5">
@@ -92,38 +96,41 @@ export const ListView: React.FC<ListViewProps> = ({
                     )}
                   </td>
 
-                  {/* Timeline */}
-                  <td className="py-4 px-4 whitespace-nowrap align-middle">
-                    <div className="flex items-center gap-1.5 text-xs text-black dark:text-white font-medium">
-                      <Calendar className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
+                  {/* Dates */}
+                  <td className="py-4 px-4 whitespace-nowrap align-middle text-xs text-neutral-600 dark:text-neutral-300">
+                    <div className="flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5 text-neutral-400" />
                       <span>{hack.displayDates}</span>
                     </div>
                   </td>
 
-                  {/* Location */}
-                  <td className="py-4 px-4 align-middle">
-                    <div className="flex items-center gap-1 text-xs text-neutral-600 dark:text-neutral-300 truncate max-w-[140px]">
-                      <MapPin className="w-3.5 h-3.5 shrink-0 text-neutral-400" />
-                      <span className="truncate">{hack.location || "Global"}</span>
+                  {/* Location & Format */}
+                  <td className="py-4 px-4 whitespace-nowrap align-middle text-xs text-neutral-600 dark:text-neutral-300">
+                    <div className="flex items-center gap-1.5">
+                      <MapPin className="w-3.5 h-3.5 text-neutral-400" />
+                      <span className="truncate max-w-[120px]">{hack.location || "Global"}</span>
                     </div>
+                    <div className="text-[11px] text-neutral-400 mt-0.5">{hack.mode}</div>
                   </td>
 
                   {/* Rewards */}
-                  <td className="py-4 px-4 whitespace-nowrap align-middle text-xs">
+                  <td className="py-4 px-4 whitespace-nowrap align-middle text-xs font-semibold text-black dark:text-white">
                     {hack.prizePool ? (
-                      <div className="flex items-center gap-1 font-semibold text-black dark:text-white truncate max-w-[130px]" title={hack.prizePool}>
-                        <Trophy className="w-3.5 h-3.5 text-neutral-500 shrink-0" />
-                        <span className="truncate">{hack.prizePool}</span>
+                      <div className="flex items-center gap-1">
+                        <Trophy className="w-3.5 h-3.5 text-amber-500" />
+                        <span>{hack.prizePool}</span>
                       </div>
                     ) : (
-                      <span className="text-neutral-400">—</span>
+                      <span className="text-neutral-400 font-normal">Perks & Swag</span>
                     )}
                   </td>
 
                   {/* Actions */}
                   <td className="py-4 px-6 text-right whitespace-nowrap align-middle">
                     <div className="flex items-center justify-end gap-2">
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -131,27 +138,31 @@ export const ListView: React.FC<ListViewProps> = ({
                         }}
                         className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                           isBookmarked
-                            ? "bg-black text-white dark:bg-white dark:text-black shadow-sm"
-                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white"
+                            ? "bg-black text-white dark:bg-white dark:text-black"
+                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700"
                         }`}
-                        title="Bookmark"
+                        title={isBookmarked ? "Remove from Shortlist" : "Save to Shortlist"}
                       >
-                        <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? "fill-current" : ""}`} />
-                      </button>
+                        <Bookmark
+                          className={`w-3.5 h-3.5 ${
+                            isBookmarked ? "fill-current" : ""
+                          }`}
+                        />
+                      </motion.button>
 
                       <a
                         href={hack.url}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1 px-3.5 py-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 font-semibold text-xs transition-all shadow-sm"
+                        className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center justify-center transition-colors"
+                        title="Open external website"
                       >
-                        <span>{statusInfo.status === "completed" ? "Archive" : "Apply"}</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     </div>
                   </td>
-                </tr>
+                </motion.tr>
               );
             })}
           </tbody>

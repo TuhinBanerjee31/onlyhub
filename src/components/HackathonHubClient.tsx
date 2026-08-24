@@ -294,113 +294,144 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
 
             {/* Results Grid / List / Timeline */}
             <div className="max-w-[1240px] mx-auto px-4 sm:px-8 pb-16">
-              {filteredHackathons.length === 0 ? (
-                <div className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4 my-8 shadow-sm">
-                  <h3 className="text-xl font-bold text-black dark:text-white">
-                    No hackathons found
-                  </h3>
-                  <p className="text-sm text-neutral-600 dark:text-neutral-300">
-                    No events matched your current search parameters.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilters({
-                        search: "",
-                        platform: "all",
-                        mode: "all",
-                        status: defaultStatus,
-                        tag: "all",
-                        sortBy: "date-asc",
-                      })
-                    }
-                    className="px-6 py-2.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:opacity-90 transition-all shadow-sm"
-                  >
-                    Reset all filters
-                  </button>
-                </div>
-              ) : viewMode === "grid" ? (
-                <div className="space-y-8">
+              <AnimatePresence mode="wait">
+                {filteredHackathons.length === 0 ? (
                   <motion.div
-                    layout
-                    className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    key="empty-state"
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.2 }}
+                    className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-2xl p-12 text-center max-w-lg mx-auto space-y-4 my-8 shadow-sm"
                   >
-                    <AnimatePresence>
-                      {visibleHackathons.map((hack) => (
-                        <HackathonCard
-                          key={hack.id}
-                          hackathon={hack}
-                          isBookmarked={bookmarkedIds.has(hack.id)}
-                          onToggleBookmark={handleToggleBookmark}
-                          onSelect={(h) => setSelectedHackathon(h)}
-                        />
-                      ))}
-                    </AnimatePresence>
+                    <h3 className="text-xl font-bold text-black dark:text-white">
+                      No hackathons found
+                    </h3>
+                    <p className="text-sm text-neutral-600 dark:text-neutral-300">
+                      No events matched your current search parameters.
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFilters({
+                          search: "",
+                          platform: "all",
+                          mode: "all",
+                          status: defaultStatus,
+                          tag: "all",
+                          sortBy: "date-asc",
+                        })
+                      }
+                      className="px-6 py-2.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-semibold text-sm hover:opacity-90 transition-all shadow-sm"
+                    >
+                      Reset all filters
+                    </button>
                   </motion.div>
+                ) : viewMode === "grid" ? (
+                  <motion.div
+                    key="grid-view"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                    className="space-y-8"
+                  >
+                    <motion.div
+                      layout
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+                    >
+                      <AnimatePresence>
+                        {visibleHackathons.map((hack) => (
+                          <HackathonCard
+                            key={hack.id}
+                            hackathon={hack}
+                            isBookmarked={bookmarkedIds.has(hack.id)}
+                            onToggleBookmark={handleToggleBookmark}
+                            onSelect={(h) => setSelectedHackathon(h)}
+                          />
+                        ))}
+                      </AnimatePresence>
+                    </motion.div>
 
-                  {/* Load More Button */}
-                  {visibleCount < filteredHackathons.length && (
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
-                      <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        type="button"
-                        onClick={() =>
-                          setVisibleCount((prev) =>
-                            Math.min(prev + PAGE_SIZE, filteredHackathons.length)
-                          )
-                        }
-                        className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white font-bold text-xs hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm transition-colors"
-                      >
-                        <ChevronDown className="w-4 h-4" />
-                        <span>
-                          Load More ({visibleCount} of {filteredHackathons.length} shown)
-                        </span>
-                      </motion.button>
+                    {/* Load More Button */}
+                    {visibleCount < filteredHackathons.length && (
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-4">
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          type="button"
+                          onClick={() =>
+                            setVisibleCount((prev) =>
+                              Math.min(prev + PAGE_SIZE, filteredHackathons.length)
+                            )
+                          }
+                          className="flex items-center gap-2 px-8 py-3.5 rounded-full bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white font-bold text-xs hover:bg-neutral-200 dark:hover:bg-neutral-800 shadow-sm transition-colors"
+                        >
+                          <ChevronDown className="w-4 h-4" />
+                          <span>
+                            Load More ({visibleCount} of {filteredHackathons.length} shown)
+                          </span>
+                        </motion.button>
 
-                      <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        type="button"
-                        onClick={() => setVisibleCount(filteredHackathons.length)}
-                        className="px-6 py-3.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-bold text-xs hover:opacity-90 shadow-sm transition-opacity"
-                      >
-                        Show All {filteredHackathons.length} Events
-                      </motion.button>
-                    </div>
-                  )}
-                </div>
-              ) : viewMode === "list" ? (
-                <div className="space-y-8">
-                  <ListView
-                    hackathons={visibleHackathons}
-                    bookmarkedIds={bookmarkedIds}
-                    onToggleBookmark={handleToggleBookmark}
-                    onSelect={(h) => setSelectedHackathon(h)}
-                  />
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          type="button"
+                          onClick={() => setVisibleCount(filteredHackathons.length)}
+                          className="px-6 py-3.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-bold text-xs hover:opacity-90 shadow-sm transition-opacity"
+                        >
+                          Show All {filteredHackathons.length} Events
+                        </motion.button>
+                      </div>
+                    )}
+                  </motion.div>
+                ) : viewMode === "list" ? (
+                  <motion.div
+                    key="list-view"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                    className="space-y-8"
+                  >
+                    <ListView
+                      hackathons={visibleHackathons}
+                      bookmarkedIds={bookmarkedIds}
+                      onToggleBookmark={handleToggleBookmark}
+                      onSelect={(h) => setSelectedHackathon(h)}
+                    />
 
-                  {visibleCount < filteredHackathons.length && (
-                    <div className="flex justify-center pt-4">
-                      <motion.button
-                        whileHover={{ scale: 1.03 }}
-                        whileTap={{ scale: 0.97 }}
-                        type="button"
-                        onClick={() => setVisibleCount(filteredHackathons.length)}
-                        className="px-8 py-3.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-bold text-xs hover:opacity-90 shadow-sm transition-opacity"
-                      >
-                        Show All {filteredHackathons.length} Rows
-                      </motion.button>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <TimelineView
-                  hackathons={filteredHackathons}
-                  bookmarkedIds={bookmarkedIds}
-                  onToggleBookmark={handleToggleBookmark}
-                  onSelect={(h) => setSelectedHackathon(h)}
-                />
-              )}
+                    {visibleCount < filteredHackathons.length && (
+                      <div className="flex justify-center pt-4">
+                        <motion.button
+                          whileHover={{ scale: 1.03 }}
+                          whileTap={{ scale: 0.97 }}
+                          type="button"
+                          onClick={() => setVisibleCount(filteredHackathons.length)}
+                          className="px-8 py-3.5 rounded-full bg-black text-white dark:bg-white dark:text-black font-bold text-xs hover:opacity-90 shadow-sm transition-opacity"
+                        >
+                          Show All {filteredHackathons.length} Rows
+                        </motion.button>
+                      </div>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="timeline-view"
+                    initial={{ opacity: 0, y: 8 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -8 }}
+                    transition={{ duration: 0.22, ease: "easeOut" }}
+                  >
+                    <TimelineView
+                      hackathons={filteredHackathons}
+                      bookmarkedIds={bookmarkedIds}
+                      onToggleBookmark={handleToggleBookmark}
+                      onSelect={(h) => setSelectedHackathon(h)}
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
 
             {/* Polarity-Flipped Black Promo Band */}

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { motion } from "framer-motion";
 import {
   MapPin,
   ExternalLink,
@@ -59,7 +60,7 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
         <div key={month} className="space-y-4">
           {/* Month Header Pill */}
           <div className="flex items-center gap-3">
-            <span className="px-4 py-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase tracking-wider">
+            <span className="px-4 py-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase tracking-wider shadow-sm">
               {month}
             </span>
             <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
@@ -70,17 +71,21 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
 
           {/* Timeline Stacked Cards */}
           <div className="pl-4 sm:pl-6 border-l-2 border-black dark:border-white space-y-4 ml-3">
-            {items.map((hack) => {
+            {items.map((hack, index) => {
               const isBookmarked = bookmarkedIds.has(hack.id);
 
               return (
-                <div
+                <motion.div
                   key={hack.id}
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
+                  whileHover={{ y: -3, scale: 1.005 }}
                   onClick={() => onSelect(hack)}
-                  className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-black dark:hover:border-neutral-500 rounded-2xl p-5 cursor-pointer relative group space-y-3 shadow-sm transition-all"
+                  className="bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:border-black dark:hover:border-neutral-500 rounded-2xl p-5 cursor-pointer relative group space-y-3 shadow-sm transition-colors"
                 >
                   {/* Timeline node */}
-                  <div className="absolute -left-[23px] sm:-left-[31px] top-6 w-3 h-3 rounded-full bg-black dark:bg-white" />
+                  <div className="absolute -left-[23px] sm:-left-[31px] top-6 w-3 h-3 rounded-full bg-black dark:bg-white transition-transform group-hover:scale-125" />
 
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
@@ -119,7 +124,9 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <button
+                      <motion.button
+                        whileHover={{ scale: 1.15 }}
+                        whileTap={{ scale: 0.9 }}
                         type="button"
                         onClick={(e) => {
                           e.stopPropagation();
@@ -128,25 +135,30 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
                         className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${
                           isBookmarked
                             ? "bg-black text-white dark:bg-white dark:text-black"
-                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-600 dark:text-neutral-300 hover:text-black dark:hover:text-white"
+                            : "bg-neutral-100 dark:bg-neutral-800 text-neutral-400 hover:text-black dark:hover:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700"
                         }`}
+                        title={isBookmarked ? "Remove from Shortlist" : "Save to Shortlist"}
                       >
-                        <Bookmark className={`w-3.5 h-3.5 ${isBookmarked ? "fill-current" : ""}`} />
-                      </button>
+                        <Bookmark
+                          className={`w-3.5 h-3.5 ${
+                            isBookmarked ? "fill-current" : ""
+                          }`}
+                        />
+                      </motion.button>
 
                       <a
                         href={hack.url}
                         target="_blank"
-                        rel="noopener noreferrer"
+                        rel="noreferrer"
                         onClick={(e) => e.stopPropagation()}
-                        className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black hover:opacity-90 font-semibold text-xs transition-all shadow-sm"
+                        className="w-8 h-8 rounded-full bg-neutral-100 dark:bg-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-700 flex items-center justify-center transition-colors"
+                        title="Open external website"
                       >
-                        <span>Apply</span>
-                        <ExternalLink className="w-3 h-3" />
+                        <ExternalLink className="w-3.5 h-3.5" />
                       </a>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               );
             })}
           </div>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useRef, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
   Search,
   X,
@@ -146,62 +147,71 @@ export const FilterBar: React.FC<FilterBarProps> = ({
             <ChevronDown className="w-3.5 h-3.5 text-neutral-500 absolute right-3 pointer-events-none" />
           </div>
 
-          {/* View switcher pill */}
-          <div className="flex items-center p-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-full shadow-sm">
-            <button
-              onClick={() => setViewMode("grid")}
-              className={`p-2 rounded-full transition-all ${
-                viewMode === "grid"
-                  ? "bg-white dark:bg-black text-black dark:text-white shadow-sm"
-                  : "text-neutral-500 hover:text-black dark:hover:text-white"
-              }`}
-              title="Grid View"
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("list")}
-              className={`p-2 rounded-full transition-all ${
-                viewMode === "list"
-                  ? "bg-white dark:bg-black text-black dark:text-white shadow-sm"
-                  : "text-neutral-500 hover:text-black dark:hover:text-white"
-              }`}
-              title="List View"
-            >
-              <ListIcon className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode("timeline")}
-              className={`p-2 rounded-full transition-all ${
-                viewMode === "timeline"
-                  ? "bg-white dark:bg-black text-black dark:text-white shadow-sm"
-                  : "text-neutral-500 hover:text-black dark:hover:text-white"
-              }`}
-              title="Timeline View"
-            >
-              <Calendar className="w-4 h-4" />
-            </button>
+          {/* View switcher pill with Smooth Sliding Indicator */}
+          <div className="flex items-center p-1 bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-full shadow-sm relative">
+            {[
+              { id: "grid", icon: LayoutGrid, title: "Grid View" },
+              { id: "list", icon: ListIcon, title: "List View" },
+              { id: "timeline", icon: Calendar, title: "Timeline View" },
+            ].map(({ id, icon: Icon, title }) => {
+              const isSelected = viewMode === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setViewMode(id as "grid" | "list" | "timeline")}
+                  className={`relative p-2 rounded-full transition-colors z-10 ${
+                    isSelected
+                      ? "text-black dark:text-white"
+                      : "text-neutral-500 hover:text-black dark:hover:text-white"
+                  }`}
+                  title={title}
+                >
+                  {isSelected && (
+                    <motion.div
+                      layoutId="activeViewModePill"
+                      transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                      className="absolute inset-0 bg-white dark:bg-black rounded-full shadow-sm -z-10 border border-neutral-200/60 dark:border-neutral-700/60"
+                    />
+                  )}
+                  <Icon className="w-4 h-4 relative z-10" />
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Category Chips Bar */}
+      {/* Category Chips Bar with Sliding Pill */}
       <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar text-xs">
-        <button
+        <motion.button
+          whileHover={{ scale: 1.03 }}
+          whileTap={{ scale: 0.96 }}
+          type="button"
           onClick={() => setFilters((prev) => ({ ...prev, tag: "all" }))}
-          className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all ${
+          className={`relative px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors z-10 ${
             filters.tag === "all"
-              ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-sm"
-              : "bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800"
+              ? "text-white dark:text-black font-bold"
+              : "text-black dark:text-white bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-800"
           }`}
         >
-          All Categories
-        </button>
+          {filters.tag === "all" && (
+            <motion.div
+              layoutId="activeCategoryTag"
+              transition={{ type: "spring", stiffness: 450, damping: 35 }}
+              className="absolute inset-0 bg-black dark:bg-white rounded-full shadow-sm -z-10"
+            />
+          )}
+          <span className="relative z-10">All Categories</span>
+        </motion.button>
 
         {availableTags.map(({ tag, count }) => {
           const isSelected = filters.tag === tag;
           return (
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.96 }}
+              type="button"
               key={tag}
               onClick={() =>
                 setFilters((prev) => ({
@@ -209,14 +219,23 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                   tag: isSelected ? "all" : tag,
                 }))
               }
-              className={`px-4 py-2 rounded-full font-medium whitespace-nowrap transition-all ${
+              className={`relative px-4 py-2 rounded-full font-medium whitespace-nowrap transition-colors z-10 ${
                 isSelected
-                  ? "bg-black text-white dark:bg-white dark:text-black font-semibold shadow-sm"
-                  : "bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800"
+                  ? "text-white dark:text-black font-bold"
+                  : "text-black dark:text-white bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 hover:bg-neutral-200 dark:hover:bg-neutral-800"
               }`}
             >
-              {tag} <span className="opacity-60 ml-0.5">({count})</span>
-            </button>
+              {isSelected && (
+                <motion.div
+                  layoutId="activeCategoryTag"
+                  transition={{ type: "spring", stiffness: 450, damping: 35 }}
+                  className="absolute inset-0 bg-black dark:bg-white rounded-full shadow-sm -z-10"
+                />
+              )}
+              <span className="relative z-10">
+                {tag} <span className="opacity-60 ml-0.5">({count})</span>
+              </span>
+            </motion.button>
           );
         })}
       </div>
