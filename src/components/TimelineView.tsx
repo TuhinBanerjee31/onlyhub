@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   MapPin,
@@ -8,6 +8,7 @@ import {
   Bookmark,
 } from "lucide-react";
 import { NormalizedHackathon } from "@/types/hackathon";
+import { parseHackathonDate } from "@/lib/utils";
 
 interface TimelineViewProps {
   hackathons: NormalizedHackathon[];
@@ -22,49 +23,61 @@ export const TimelineView: React.FC<TimelineViewProps> = ({
   onToggleBookmark,
   onSelect,
 }) => {
-  const groups: Record<string, NormalizedHackathon[]> = {};
+  // Group hackathons accurately by Month & Year using parseHackathonDate
+  const sortedGroups = useMemo(() => {
+    const groupMap = new Map<
+      string,
+      { label: string; dateVal: number; items: NormalizedHackathon[] }
+    >();
 
-  hackathons.forEach((hack) => {
-    let groupKey = "Upcoming Schedule";
+    const currentYear = new Date().getFullYear();
 
-    if (hack.startDate) {
-      try {
-        const d = new Date(hack.startDate);
-        if (!isNaN(d.getTime())) {
-          groupKey = d.toLocaleDateString("en-US", {
-            month: "long",
-            year: "numeric",
-          });
-        } else {
-          const monthMatch = hack.startDate.match(
-            /(JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|January|February|March|April|May|June|July|August|September|October|November|December)/i
-          );
-          if (monthMatch) {
-            groupKey = `${monthMatch[1].toUpperCase()} 2026`;
-          }
+    hackathons.forEach((hack) => {
+      let groupKey = "Upcoming Schedule";
+      let dateVal = 9999999999999;
+
+      const parsed = parseHackathonDate(hack.startDate);
+      if (parsed) {
+        // Guard against legacy two-digit date conversions (e.g. year < 2020)
+        let yr = parsed.getFullYear();
+        if (yr < 2020) {
+          yr = currentYear;
+          parsed.setFullYear(currentYear);
         }
-      } catch {
-        groupKey = "Upcoming Schedule";
-      }
-    }
 
-    if (!groups[groupKey]) {
-      groups[groupKey] = [];
-    }
-    groups[groupKey].push(hack);
-  });
+        groupKey = parsed.toLocaleDateString("en-US", {
+          month: "long",
+          year: "numeric",
+        });
+
+        // Numerical timestamp for chronological month sorting
+        dateVal = new Date(yr, parsed.getMonth(), 1).getTime();
+      }
+
+      if (!groupMap.has(groupKey)) {
+        groupMap.set(groupKey, {
+          label: groupKey,
+          dateVal,
+          items: [],
+        });
+      }
+      groupMap.get(groupKey)!.items.push(hack);
+    });
+
+    return Array.from(groupMap.values()).sort((a, b) => a.dateVal - b.dateVal);
+  }, [hackathons]);
 
   return (
     <div className="space-y-12 max-w-4xl mx-auto">
-      {Object.entries(groups).map(([month, items]) => (
-        <div key={month} className="space-y-4">
+      {sortedGroups.map(({ label, items }) => (
+        <div key={label} className="space-y-4">
           {/* Month Header Pill */}
           <div className="flex items-center gap-3">
             <span className="px-4 py-1.5 rounded-full bg-black text-white dark:bg-white dark:text-black text-xs font-bold uppercase tracking-wider shadow-sm">
-              {month}
+              {label}
             </span>
             <span className="text-xs font-medium text-neutral-600 dark:text-neutral-300">
-              {items.length} Hackathons
+              {items.length} Hackathon{items.length > 1 ? "s" : ""}
             </span>
             <div className="flex-1 h-[1px] bg-neutral-200 dark:bg-neutral-800" />
           </div>

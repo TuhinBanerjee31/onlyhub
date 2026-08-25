@@ -22,7 +22,7 @@ import {
   UserBookmark,
   HackathonStatus,
 } from "@/types/hackathon";
-import { getHackathonStatus, calculateHubStats } from "@/lib/utils";
+import { getHackathonStatus, calculateHubStats, parseHackathonDate } from "@/lib/utils";
 import {
   ArrowUp,
   Sparkles,
@@ -209,15 +209,15 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
       }
 
       if (filters.sortBy === "date-asc") {
-        if (!a.startDate) return 1;
-        if (!b.startDate) return -1;
-        return new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
+        const timeA = parseHackathonDate(a.startDate)?.getTime() || Number.MAX_SAFE_INTEGER;
+        const timeB = parseHackathonDate(b.startDate)?.getTime() || Number.MAX_SAFE_INTEGER;
+        return timeA - timeB;
       }
 
       if (filters.sortBy === "date-desc") {
-        if (!a.startDate) return 1;
-        if (!b.startDate) return -1;
-        return new Date(b.startDate).getTime() - new Date(a.startDate).getTime();
+        const timeA = parseHackathonDate(a.startDate)?.getTime() || 0;
+        const timeB = parseHackathonDate(b.startDate)?.getTime() || 0;
+        return timeB - timeA;
       }
 
       return 0;
