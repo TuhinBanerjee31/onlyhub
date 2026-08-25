@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Bookmark, Sun, Moon, Sparkles, Activity, Compass, Plus } from "lucide-react";
 
 interface NavbarProps {
@@ -29,23 +29,86 @@ export const Navbar: React.FC<NavbarProps> = ({
   const [isDark, setIsDark] = useState(true);
 
   useEffect(() => {
-    const isDarkMode = document.documentElement.classList.contains("dark");
-    setIsDark(isDarkMode);
+    try {
+      const savedTheme = localStorage.getItem("onlyhub_theme");
+      if (savedTheme) {
+        const isDarkPref = savedTheme === "dark";
+        setIsDark(isDarkPref);
+        if (isDarkPref) {
+          document.documentElement.classList.add("dark");
+        } else {
+          document.documentElement.classList.remove("dark");
+        }
+      } else {
+        const isDarkMode = document.documentElement.classList.contains("dark");
+        setIsDark(isDarkMode);
+      }
+    } catch {
+      // ignore
+    }
   }, []);
 
-  const toggleTheme = () => {
-    if (isDark) {
-      document.documentElement.classList.remove("dark");
-      setIsDark(false);
+  const toggleTheme = (e?: React.MouseEvent) => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+
+    const updateDOM = () => {
+      if (newIsDark) {
+        document.documentElement.classList.add("dark");
+        try {
+          localStorage.setItem("onlyhub_theme", "dark");
+        } catch {
+          // ignore
+        }
+      } else {
+        document.documentElement.classList.remove("dark");
+        try {
+          localStorage.setItem("onlyhub_theme", "light");
+        } catch {
+          // ignore
+        }
+      }
+    };
+
+    if (
+      typeof document !== "undefined" &&
+      "startViewTransition" in document &&
+      typeof (document as any).startViewTransition === "function"
+    ) {
+      const transition = (document as any).startViewTransition(updateDOM);
+
+      const x = e?.clientX ?? (typeof window !== "undefined" ? window.innerWidth - 40 : 0);
+      const y = e?.clientY ?? 40;
+      const endRadius = Math.hypot(
+        Math.max(x, window.innerWidth - x),
+        Math.max(y, window.innerHeight - y)
+      );
+
+      transition.ready
+        .then(() => {
+          document.documentElement.animate(
+            {
+              clipPath: [
+                `circle(0px at ${x}px ${y}px)`,
+                `circle(${endRadius}px at ${x}px ${y}px)`,
+              ],
+            },
+            {
+              duration: 420,
+              easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+              pseudoElement: "::view-transition-new(root)",
+            }
+          );
+        })
+        .catch(() => {});
     } else {
-      document.documentElement.classList.add("dark");
-      setIsDark(true);
+      updateDOM();
     }
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full pt-3 sm:pt-4 px-3 sm:px-6 transition-all duration-300 pointer-events-none">
-      <div className="max-w-[1240px] mx-auto bg-white/85 dark:bg-black/85 backdrop-blur-xl border border-neutral-200/90 dark:border-neutral-800/90 rounded-2xl sm:rounded-full px-4 sm:px-5 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center justify-between transition-all duration-300 pointer-events-auto">
+    <header className="sticky top-0 z-50 w-full pt-3 sm:pt-4 px-3 sm:px-6 transition-colors duration-300 pointer-events-none">
+      <div className="max-w-[1240px] mx-auto bg-white/85 dark:bg-black/85 backdrop-blur-xl border border-neutral-200/90 dark:border-neutral-800/90 rounded-2xl sm:rounded-full px-4 sm:px-5 shadow-[0_10px_30px_rgba(0,0,0,0.08)] dark:shadow-[0_10px_30px_rgba(0,0,0,0.4)] flex items-center justify-between transition-colors duration-300 pointer-events-auto">
         
         {/* Brand Logo & Live Radar Pill */}
         <div className="flex items-center gap-5 sm:gap-8">
@@ -181,18 +244,29 @@ export const Navbar: React.FC<NavbarProps> = ({
 
           {/* Dark / Light Mode Switcher */}
           <motion.button
-            whileHover={{ scale: 1.08, rotate: 20 }}
+            whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.92 }}
             onClick={toggleTheme}
-            className="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-black dark:text-white transition-all shadow-sm"
+            className="w-9 h-9 sm:w-9.5 sm:h-9.5 rounded-full bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 flex items-center justify-center text-black dark:text-white transition-colors duration-200 shadow-sm overflow-hidden"
             title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
             aria-label="Toggle Theme"
           >
-            {isDark ? (
-              <Sun className="w-4 h-4 text-amber-400" />
-            ) : (
-              <Moon className="w-4 h-4 text-neutral-700" />
-            )}
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.div
+                key={isDark ? "dark" : "light"}
+                initial={{ y: -16, opacity: 0, rotate: -90 }}
+                animate={{ y: 0, opacity: 1, rotate: 0 }}
+                exit={{ y: 16, opacity: 0, rotate: 90 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                className="flex items-center justify-center"
+              >
+                {isDark ? (
+                  <Sun className="w-4 h-4 text-amber-400" />
+                ) : (
+                  <Moon className="w-4 h-4 text-neutral-700" />
+                )}
+              </motion.div>
+            </AnimatePresence>
           </motion.button>
         </div>
       </div>
