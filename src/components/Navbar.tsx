@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bookmark, Sun, Moon, Sparkles, Activity, Compass, Plus } from "lucide-react";
+import { Bookmark, Sun, Moon, Sparkles, Activity, Compass, Plus, Bell } from "lucide-react";
 
 interface NavbarProps {
   bookmarkCount: number;
@@ -12,6 +12,7 @@ interface NavbarProps {
   onOpenAnalytics: () => void;
   onOpenFinder: () => void;
   onOpenRequestPlatform?: () => void;
+  onOpenSubscribe?: () => void;
   activeTab: "explore" | "analytics";
   setActiveTab: (tab: "explore" | "analytics") => void;
 }
@@ -23,6 +24,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAnalytics,
   onOpenFinder,
   onOpenRequestPlatform,
+  onOpenSubscribe,
   activeTab,
   setActiveTab,
 }) => {
@@ -211,6 +213,20 @@ export const Navbar: React.FC<NavbarProps> = ({
             >
               <Plus className="w-3.5 h-3.5 text-emerald-500 group-hover:rotate-90 transition-transform duration-300" />
               <span>Request Platform</span>
+            </motion.button>
+          )}
+
+          {/* Radar Alerts Subscribe Button */}
+          {onOpenSubscribe && (
+            <motion.button
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
+              onClick={onOpenSubscribe}
+              className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-full bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 border border-neutral-200 dark:border-neutral-800 text-black dark:text-white text-xs font-bold transition-all shadow-sm group"
+              title="Subscribe for 24h Hackathon Alerts"
+            >
+              <Bell className="w-3.5 h-3.5 text-emerald-500 group-hover:scale-110 transition-transform duration-300" />
+              <span>Alerts</span>
             </motion.button>
           )}
 

@@ -7,6 +7,7 @@ import {
   Calendar,
   Layers,
   ArrowRight,
+  Bell,
 } from "lucide-react";
 import { FilterOptions, HubStats, PlatformType, HackathonMode } from "@/types/hackathon";
 
@@ -16,6 +17,7 @@ interface HeroSectionProps {
   setFilters: React.Dispatch<React.SetStateAction<FilterOptions>>;
   onOpenFinder: () => void;
   onOpenRequestPlatform?: () => void;
+  onOpenSubscribe?: () => void;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
@@ -24,6 +26,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
   setFilters,
   onOpenFinder,
   onOpenRequestPlatform,
+  onOpenSubscribe,
 }) => {
   const [localSearch, setLocalSearch] = useState(filters.search);
 
@@ -52,8 +55,22 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
           
           {/* Left Column: Headline & Intro */}
           <div className="lg:col-span-7 space-y-6">
-            <div className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
-              Global HACKATHON RADAR
+            <div className="flex items-center gap-3">
+              <div className="text-xs font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">
+                Global HACKATHON RADAR
+              </div>
+              {onOpenSubscribe && (
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  type="button"
+                  onClick={onOpenSubscribe}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold hover:bg-emerald-500/20 transition-all border border-emerald-500/30 shadow-sm"
+                >
+                  <Bell className="w-3 h-3 animate-bounce" />
+                  <span>Get 24h Alerts</span>
+                </motion.button>
+              )}
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold font-brand tracking-tight text-black dark:text-white leading-tight">

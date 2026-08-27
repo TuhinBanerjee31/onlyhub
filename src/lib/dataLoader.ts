@@ -392,6 +392,8 @@ export async function getAllHackathonsAsync(): Promise<NormalizedHackathon[]> {
   return getAllHackathons();
 }
 
+export const loadAllHackathons = getAllHackathonsAsync;
+
 export function getHubStats(hackathons: NormalizedHackathon[]): HubStats {
   const platformCounts: Record<PlatformType, number> = {
     devfolio: 0,

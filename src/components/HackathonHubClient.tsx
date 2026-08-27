@@ -14,6 +14,8 @@ import { HackathonModal } from "./HackathonModal";
 import { BookmarksDrawer } from "./BookmarksDrawer";
 import { HackathonFinderModal } from "./HackathonFinderModal";
 import { RequestPlatformModal } from "./RequestPlatformModal";
+import { SubscribeModal } from "./SubscribeModal";
+import { NewsletterBanner } from "./NewsletterBanner";
 import {
   ApplicationStage,
   FilterOptions,
@@ -49,6 +51,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
   const [isBookmarksOpen, setIsBookmarksOpen] = useState(false);
   const [isFinderOpen, setIsFinderOpen] = useState(false);
   const [isRequestPlatformOpen, setIsRequestPlatformOpen] = useState(false);
+  const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
   const [showBackToTop, setShowBackToTop] = useState(false);
   const [visibleCount, setVisibleCount] = useState<number>(PAGE_SIZE);
 
@@ -241,6 +244,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
         }}
         onOpenFinder={() => setIsFinderOpen(true)}
         onOpenRequestPlatform={() => setIsRequestPlatformOpen(true)}
+        onOpenSubscribe={() => setIsSubscribeOpen(true)}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
       />
@@ -284,6 +288,7 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
               setFilters={setFilters}
               onOpenFinder={() => setIsFinderOpen(true)}
               onOpenRequestPlatform={() => setIsRequestPlatformOpen(true)}
+              onOpenSubscribe={() => setIsSubscribeOpen(true)}
             />
 
             {/* Filter Bar */}
@@ -520,6 +525,11 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
         onClose={() => setIsRequestPlatformOpen(false)}
       />
 
+      <SubscribeModal
+        isOpen={isSubscribeOpen}
+        onClose={() => setIsSubscribeOpen(false)}
+      />
+
       {/* Floating Back to Top Button */}
       <AnimatePresence>
         {showBackToTop && (
@@ -538,6 +548,9 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
           </motion.button>
         )}
       </AnimatePresence>
+
+      {/* Newsletter Alert Subscription Banner */}
+      <NewsletterBanner />
 
       {/* Deep Black Footer */}
       <footer className="bg-black text-white pt-14 pb-10 border-t border-neutral-800">
@@ -571,6 +584,15 @@ export const HackathonHubClient: React.FC<HackathonHubClientProps> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-3">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="button"
+                onClick={() => setIsSubscribeOpen(true)}
+                className="px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 text-xs font-bold transition-all"
+              >
+                🔔 24h Alerts
+              </motion.button>
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

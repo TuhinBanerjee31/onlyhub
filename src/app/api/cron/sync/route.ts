@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { triggerAllBrightDataCollectors } from "@/lib/brightData";
 import { supabaseAdmin } from "@/lib/supabase";
+import { loadAllHackathons } from "@/lib/dataLoader";
+import { findHackathonsStartingTomorrow, getActiveSubscribers } from "@/lib/alerts";
+import { sendUpcomingAlertEmail } from "@/lib/mailer";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +55,28 @@ async function handleSync(request: NextRequest) {
       }
     }
 
+    // 2. Also check and trigger 24-hour upcoming hackathon email alerts
+    try {
+      const allHackathons = await loadAllHackathons();
+      const startingTomorrow = findHackathonsStartingTomorrow(allHackathons);
+      if (startingTomorrow.length > 0) {
+        // Fetch subscribers
+        let subscriberEmails: string[] = [];
+        if (supabaseAdmin) {
+          const { data } = await supabaseAdmin.from("subscribers").select("email").eq("is_active", true);
+          if (data) subscriberEmails = data.map((d: any) => d.email).filter(Boolean);
+        }
+        if (subscriberEmails.length > 0) {
+          await sendUpcomingAlertEmail(subscriberEmails, startingTomorrow);
+        }
+      }
+    } catch (alertsErr) {
+      console.warn("⚠️ [Cron] Daily alert broadcast warning:", alertsErr);
+    }
+
     return NextResponse.json({
       success: true,
-      message: "Bright Data DCA collectors triggered successfully",
+      message: "Bright Data DCA collectors and upcoming alerts triggered successfully",
       webhookUrl,
       results,
       triggeredAt: new Date().toISOString(),

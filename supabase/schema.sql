@@ -69,5 +69,28 @@ CREATE POLICY "Service role can manage hackathons"
 CREATE POLICY "Service role can manage sync logs" 
     ON public.sync_logs 
     FOR ALL 
-    USING (true)
+    USING (true) 
     WITH CHECK (true);
+
+-- 5. Create subscribers table for email alerts & digest
+CREATE TABLE IF NOT EXISTS public.subscribers (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    email TEXT UNIQUE NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    last_notified_at TIMESTAMP WITH TIME ZONE
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscribers_email ON public.subscribers(email);
+CREATE INDEX IF NOT EXISTS idx_subscribers_is_active ON public.subscribers(is_active);
+
+-- Enable RLS on subscribers
+ALTER TABLE public.subscribers ENABLE ROW LEVEL SECURITY;
+
+-- Allow service role full access to manage subscribers
+CREATE POLICY "Service role can manage subscribers" 
+    ON public.subscribers 
+    FOR ALL 
+    USING (true) 
+    WITH CHECK (true);
+
